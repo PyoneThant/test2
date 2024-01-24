@@ -1,0 +1,21 @@
+.event-photos .field__items {
+  display: flex;
+  flex-direction: row;
+  gap: 40px;
+}
+
+.event-photos .field__item {
+  height: 204px;
+  max-width: 280px;
+  width: 100%;
+  align-self: stretch;
+  object-fit: cover;
+}
+
+.event-photos img.img-fluid {
+  height: 204px;
+  max-width: 280px; 
+  width: 100%;
+  align-self: stretch;
+  object-fit: cover;
+}

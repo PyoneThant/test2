@@ -1,0 +1,176 @@
+{#
+/**
+ * @file
+ * Theme override to display an event node.
+ */
+#}
+{%
+  set classes = [
+    'node',
+    'node--type-' ~ node.bundle|clean_class,
+    node.isPromoted() ? 'node--promoted',
+    node.isSticky() ? 'node--sticky',
+    not node.isPublished() ? 'node--unpublished',
+    view_mode ? 'node--view-mode-' ~ view_mode|clean_class,
+  ]
+%}
+{% 
+  set event_main_photo = node.field_event_main_photo.entity|file_url
+%}
+
+{{ attach_library('classy/node') }}
+<article{{ attributes.addClass(classes) }}>
+  <div{{ content_attributes.addClass('node__content container') }}>
+    <div class="row mb-4">
+      <!-- Left Side Column -->
+      <div class="col-xl-3 col-lg-3 col-md-4 col-12">
+          {% if content.field_event_main_photo|field_value %}
+          <div><img src="{{ node.field_event_main_photo.entity|file_url }}" class="w-100 mb-3"></div>
+          {% endif %}
+
+          <!-- Calendar and ICS -->
+          <!-- <div class="row mb-3">
+            <div class="mb-3">
+            <div class="btn-group w-100">
+              <button type="button" class="btn event-btn dropdown-toggle w-100" data-bs-toggle="dropdown" aria-expanded="false">
+                Add to Calendar
+              </button>
+              <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="https://www.google.com/calendar/render?action=TEMPLATE&text={{ node.label|url_encode|raw }}&dates={{ node.field_event_start_date_and_time.value|date('Ymd\\THis', 'GMT+14')|url_encode }}/{{ node.field_event_end_date_and_time.value|date('Ymd\\THis', 'GMT+14')|url_encode }}&details=&location={{ node.field_event_location.value|url_encode }}&sf=true&output=xml" target="_blank" rel="nofollow">Google Calendar</a></li>
+                <li><a class="dropdown-item" href="https://calendar.yahoo.com/?v=60&view=d&type=20&title={{ node.label|url_encode|raw }}&st={{ node.field_event_start_date_and_time.value|date('Ymd\\THis', 'GMT+14')|url_encode }}&et={{ node.field_event_end_date_and_time.value|date('Ymd\\THis', 'GMT+14')|url_encode }}&desc=&in_loc={{ node.field_event_location.value|url_encode }}" target="_blank" rel="nofollow">Yahoo Calendar</a></li>
+                <li><a class="dropdown-item" href="/node/{{ node.id }}/ics" target="_blank">Apple Calendar</a></li>
+                <li><a class="dropdown-item" href="/node/{{ node.id }}/ics" target="_blank">Outlook Calendar</a></li>
+              </ul>
+            </div>
+            </div>
+            <div class="mb-3">
+              <a href="/node/{{ node.id }}/ics" class="btn btn-inverted d-block w-100" download>Download ICS</a>
+            </div>
+          </div> -->
+          <div class="row mb-3">
+            <a href="{{ node.field_event_url.value }}" class="btn btn-inverted d-block w-100" target="_blank">More Details</a>
+          </div>
+
+
+
+
+          <!-- Metadata -->
+          <div class="row my-3">
+            <div class="event-metadata">
+                <h5>METADATA</h5>
+                <ul>
+                  {% if content.field_tags is defined and content.field_tags['#items'] is defined and content.field_tags['#items'] is not empty %}
+                    {% for tag in content.field_tags['#items'] %}
+                      {% if tag.entity is defined and tag.entity.label is defined %}
+                        <li><a href="#">{{ tag.entity.label|lower }}</a></li>
+                      {% endif %}
+                    {% endfor %}
+                  {% else %}
+                    <li>No metadata available</li>
+                  {% endif %}
+                </ul>
+            </div>
+          </div>
+
+          <!-- Contact details with font icons -->
+          <div class="row">
+            <div class="event-contact">
+            <h5>CONTACT</h5>
+                <p>
+                    <span>{{ node.field_event_contact_description.value }}</span><br>
+                    <i class="fas fa-phone"></i> <a href="tel:{{ node.field_event_contact_phone.value }}">{{ node.field_event_contact_phone.value }}</a><br>
+                    <i class="fas fa-envelope"></i> <a href="mailto:{{ node.field_event_contact_email.value }}">{{ node.field_event_contact_email.value }}</a>
+                </p>
+            </div>
+          </div>
+      </div>
+
+      <!-- Right Side Column -->
+      <div class="col-xl-9 col-lg-9 col-md-8 col-12 p-5">
+        <div class="container-fluid" style="padding-left:2rem;">
+          <h2 class="event-primary event-header">{{ label }}</h2>
+          <!-- Date, Time, Timezone, Access, Location -->
+          {% if content.field_event_start_date_and_time|field_value %}
+            {% if node.field_event_start_date_and_time.value is defined %}
+              {% set event_date = node.field_event_start_date_and_time.value|date("d F Y, H:i", "GMT+14") %}
+            {% endif %}
+
+            {% if node.field_event_end_date_and_time.value is defined %}
+              {% if node.field_event_end_date_and_time.value|date("d F Y", "GMT+14") == node.field_event_start_date_and_time.value|date("d F Y", "GMT+14") %}
+                {% set event_end_time = node.field_event_end_date_and_time.value|date("H:i", "GMT+14") %}
+              {% else %}
+                {% set event_end_time = node.field_event_end_date_and_time.value|date("d F Y, H:i", "GMT+14") %}
+              {% endif %}
+            {% endif %}
+
+            {% if node.field_event_time_zone.value is defined %}
+              {% set event_time_zone = node.field_event_time_zone.value %}
+            {% endif %}
+            {% if node.field_event_access_type.value is defined and node.field_event_access_type.value is not empty %}
+              {% set event_access_type_key = node.field_event_access_type.value %}
+              {% if event_access_type_key in node.field_event_access_type.fieldDefinition.getSetting('allowed_values')|keys %}
+                {% set event_access_type_label = node.field_event_access_type.fieldDefinition.getSetting('allowed_values')[event_access_type_key] %}
+              {% else %}
+                {% set event_access_type_label = 'Invalid access type' %}
+              {% endif %}
+            {% else %}
+              {% set event_access_type_label = 'Open to the public' %}
+            {% endif %}
+            <div class="row mb-3 pb-3">
+              <p class="event-primary m-0 pb-1">{{ event_date }} - {{ event_end_time }} {{ event_time_zone }} Time | {{ event_access_type_label }}</p>
+              <p class="m-0 pb-1"><strong>{{ node.field_event_location.value }}</strong></p>
+              <!-- <div class="d-inline mt-1">
+              {% if content.field_agenda_pdf %}
+                <a href="{{ file_url(content.field_agenda_pdf['#items'].entity.uri.value) }}" class="btn event-btn" download target="_blank">Download Agenda</a>
+              {% else %}
+                <button type="button" class="btn event-btn" disabled>Download Agenda</button>
+              {% endif %}
+              </div> -->
+            </div>
+          {% endif %}
+          <!-- Main body -->
+          <div class="row my-5">
+              {% if content.body %}
+              <div class="">{{ content.body }}</div>
+              {% endif %}
+          </div>
+          <!-- AddToAny Share Buttons -->
+          <div class="row my-5">
+              <div class="col-md-12 col-lg-5">
+                  <span class="share-article">Share this article</span>
+              </div>
+              <div class="col-md-12 col-lg-7 justify-content-between">
+                  {{ drupal_entity('block', 'addtoanysharebuttons') }}
+              </div>
+          </div>
+
+        </div>
+      </div>
+      <!-- Event Photos -->
+      <div class="row mt-5"> 
+        {% if content.field_event_photos|field_value %}
+        <hr class="event-hr">
+          <div class="event-photos">
+            {{ content.field_event_photos }}
+          </div>
+          {% endif %}
+        </div>
+      </div>
+      
+      <!-- Upcoming and Previous Events -->
+      <hr class="event-hr">
+      <div class="event-blocks">
+        <div class="row">
+          <div class="col-12">
+          {{ drupal_block('views_block:upcoming_events-block_1') }}
+          </div>
+        </div>
+        <hr class="event-hr">
+        <div class="row">
+          <div class="col-12">
+          {{ drupal_block('views_block:upcoming_events-block_2') }}
+          </div>
+        </div>
+      </div>
+    </div>
+</article>
